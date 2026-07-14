@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pixel Pocket Timer</title>
+<style>
+:root{
+  --bg:#fff8ee;--dot:rgba(102,75,91,.09);
+  --body:#f6b8c7;--light:#ffdce5;--edge:#774958;
+  --screen:#ced7ac;--screen2:#eaf0cf;--ink:#30382f;
+  --btn:#f5e7b9;--text:#4c3741;
+}
+*{box-sizing:border-box}
+body{
+  min-height:100vh;margin:0;display:grid;place-items:center;padding:24px;
+  font-family:"Courier New","Malgun Gothic",monospace;color:var(--text);
+  background-color:var(--bg);
+  background-image:radial-gradient(var(--dot) 1.5px,transparent 1.5px);
+  background-size:18px 18px
+}
+.device{
+  width:min(92vw,430px);padding:28px 24px 30px;border:5px solid var(--edge);
+  border-radius:38px 38px 52px 52px;
+  background:linear-gradient(145deg,var(--light) 0 12%,var(--body) 12% 100%);
+  box-shadow:10px 12px 0 rgba(82,54,66,.16),inset 6px 6px 0 rgba(255,255,255,.32),inset -7px -7px 0 rgba(125,79,93,.16)
+}
+.brand{text-align:center;font-weight:900;letter-spacing:.12em;margin:0 0 14px}
+.shell{padding:12px;border:5px solid var(--edge);border-radius:18px;background:#69535e}
+.screen{
+  min-height:282px;padding:18px 16px 16px;border:4px solid #727a5d;
+  background:repeating-linear-gradient(0deg,rgba(48,56,47,.035) 0 2px,transparent 2px 5px),var(--screen);
+  color:var(--ink);overflow:hidden;transition:.18s
+}
+.status,.message{text-align:center;font-weight:900}
+.status{letter-spacing:.12em;min-height:1.4em}
+.time{text-align:center;font-size:clamp(3.2rem,15vw,5.3rem);font-weight:900;line-height:1;margin:4px 0 10px;font-variant-numeric:tabular-nums}
+.stage{position:relative;height:102px;margin-top:4px;border-top:3px dashed rgba(48,56,47,.28);overflow:hidden}
+.ground{position:absolute;left:9%;right:9%;bottom:15px;height:5px;background:var(--ink);opacity:.55}
+.pet{
+  position:absolute;left:50%;bottom:25px;width:12px;height:12px;transform:translateX(-50%) scale(1.6);
+  background:var(--ink);box-shadow:
+  -12px -12px 0 var(--ink),12px -12px 0 var(--ink),
+  -12px 0 0 var(--ink),12px 0 0 var(--ink),
+  -12px 12px 0 var(--ink),0 12px 0 var(--ink),12px 12px 0 var(--ink),
+  -12px 24px 0 var(--ink),12px 24px 0 var(--ink)
+}
+.pet:before,.pet:after{content:"";position:absolute;top:1px;width:4px;height:4px;background:var(--screen)}
+.pet:before{left:1px}.pet:after{right:1px}
+.bubble{
+  position:absolute;left:50%;top:10px;transform:translateX(-50%);
+  padding:4px 7px;border:3px solid var(--ink);background:var(--screen2);font-size:.72rem;font-weight:900;opacity:0
+}
+.heart{position:absolute;top:22px;left:52%;width:8px;height:8px;background:var(--ink);opacity:0;transform:rotate(45deg)}
+.heart:before,.heart:after{content:"";position:absolute;width:8px;height:8px;background:var(--ink)}
+.heart:before{left:-5px}.heart:after{top:-5px}
+.running .pet{animation:walk 2.4s steps(6,end) infinite alternate,bob .45s steps(2,end) infinite}
+.running .bubble,.paused .bubble,.finished .bubble{opacity:1}
+.paused .pet{animation:sleep 1.2s steps(2,end) infinite}
+.finished{background:#edf2bd;animation:flash .8s steps(2,end) 3}
+.finished .pet{animation:jump .65s steps(4,end) infinite}
+.finished .heart{opacity:1;animation:heart .8s steps(4,end) infinite}
+@keyframes walk{from{left:24%}to{left:76%}}
+@keyframes bob{to{margin-bottom:3px}}
+@keyframes sleep{from{transform:translateX(-50%) scale(1.6) rotate(-3deg)}to{transform:translateX(-50%) scale(1.6) rotate(3deg)}}
+@keyframes jump{50%{bottom:45px}}
+@keyframes heart{0%{top:42px;opacity:0;transform:rotate(45deg) scale(.5)}40%{opacity:1}100%{top:8px;opacity:0}}
+@keyframes flash{to{filter:brightness(1.22)}}
+.controls{margin-top:22px}
+.input-row{display:flex;justify-content:center;align-items:center;gap:9px;margin-bottom:18px;font-weight:900}
+input{
+  width:92px;height:44px;border:4px solid var(--edge);border-radius:8px;background:#fff9dc;
+  font:inherit;font-weight:900;text-align:center;box-shadow:4px 4px 0 #8c5a69
+}
+.buttons{display:grid;grid-template-columns:repeat(2,minmax(110px,1fr));gap:13px}
+button{
+  min-height:48px;border:4px solid var(--edge);border-radius:9px;background:var(--btn);
+  font:inherit;font-weight:900;letter-spacing:.08em;color:var(--text);cursor:pointer;box-shadow:5px 5px 0 #8c5a69
+}
+button:active:not(:disabled){transform:translate(4px,4px);box-shadow:1px 1px 0 #8c5a69}
+button:disabled{opacity:.48;cursor:not-allowed}
+#pause{background:#e8d2f8}#resume{background:#cce7c5}#reset{background:#efb6b6}
+.helper{text-align:center;min-height:1.4em;margin:15px 0 0;font-size:.76rem;font-weight:800}
+@media(max-width:380px){.buttons{grid-template-columns:1fr}.device{padding:24px 16px}}
+</style>
+</head>
+<body>
+<main class="device">
+  <p class="brand">PIXEL POCKET TIMER</p>
+  <section class="shell">
+    <div id="screen" class="screen idle">
+      <div id="status" class="status">READY</div>
+      <div id="time" class="time">05:00</div>
+      <div class="stage">
+        <div id="bubble" class="bubble">READY!</div>
+        <div class="heart"></div><div class="pet"></div><div class="ground"></div>
+      </div>
+      <p id="message" class="message">시간을 정하고 START!</p>
+    </div>
+  </section>
+
+  <section class="controls">
+    <div class="input-row">
+      <label for="minutes">MINUTE</label>
+      <input id="minutes" type="number" min="1" max="999" step="1" value="5">
+    </div>
+    <div class="buttons">
+      <button id="start">START</button>
+      <button id="pause" disabled>PAUSE</button>
+      <button id="resume" disabled>RESUME</button>
+      <button id="reset">RESET</button>
+    </div>
+    <p id="helper" class="helper">1분부터 999분까지 설정할 수 있어요.</p>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const input=$("minutes"),time=$("time"),screen=$("screen"),status=$("status"),message=$("message"),bubble=$("bubble"),helper=$("helper");
+const startBtn=$("start"),pauseBtn=$("pause"),resumeBtn=$("resume"),resetBtn=$("reset");
+
+let timerId=null,endTime=0,pausedMs=0,initialSeconds=300,state="idle";
+
+function format(sec){
+  sec=Math.max(0,Math.ceil(sec));
+  const m=Math.floor(sec/60),s=sec%60;
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+function render(sec){time.textContent=format(sec);document.title=`${format(sec)} | Pixel Pocket Timer`;}
+function clearLoop(){if(timerId!==null){clearInterval(timerId);timerId=null;}}
+function setState(next){
+  state=next;screen.className=`screen ${next}`;
+  const data={
+    idle:["READY","시간을 정하고 START!","READY!",false,true,true,false],
+    running:["PLAYING","도트 토끼가 움직이는 중","GO!",true,false,true,true],
+    paused:["PAUSED","잠깐 쉬는 중...","Zzz",true,true,false,true],
+    finished:["CLEAR!","완료!","YAY!",false,true,true,false]
+  }[next];
+  status.textContent=data[0];message.textContent=data[1];bubble.textContent=data[2];
+  startBtn.disabled=data[3];pauseBtn.disabled=data[4];resumeBtn.disabled=data[5];input.disabled=data[6];
+}
+function getSeconds(){
+  const m=Number(input.value);
+  if(!Number.isInteger(m)||m<1||m>999){helper.textContent="1부터 999 사이의 정수 분을 입력해 주세요.";input.focus();return null;}
+  return m*60;
+}
+function tick(){
+  const left=endTime-Date.now();
+  if(left<=0){clearLoop();render(0);setState("finished");helper.textContent="타이머가 완료됐어요!";return;}
+  render(left/1000);
+}
+function beginLoop(){clearLoop();tick();timerId=setInterval(tick,250);}
+function start(){
+  if(state==="running"||state==="paused")return;
+  const sec=getSeconds();if(sec===null)return;
+  initialSeconds=sec;pausedMs=0;endTime=Date.now()+sec*1000;render(sec);setState("running");helper.textContent="타이머가 시작됐어요.";beginLoop();
+}
+function pause(){
+  if(state!=="running")return;
+  pausedMs=Math.max(0,endTime-Date.now());clearLoop();render(pausedMs/1000);setState("paused");helper.textContent="일시정지했어요.";
+}
+function resume(){
+  if(state!=="paused"||pausedMs<=0)return;
+  endTime=Date.now()+pausedMs;setState("running");helper.textContent="다시 시작했어요.";beginLoop();
+}
+function reset(){
+  clearLoop();pausedMs=0;const sec=getSeconds();
+  if(sec===null){input.value=5;initialSeconds=300;}else initialSeconds=sec;
+  render(initialSeconds);setState("idle");helper.textContent="초기화했어요.";
+}
+startBtn.onclick=start;pauseBtn.onclick=pause;resumeBtn.onclick=resume;resetBtn.onclick=reset;
+input.addEventListener("input",()=>{if(state==="idle"||state==="finished"){const m=Number(input.value);if(Number.isInteger(m)&&m>=1&&m<=999)render(m*60);}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&state==="running")tick();});
+render(initialSeconds);setState("idle");
+</script>
+</body>
+</html>
