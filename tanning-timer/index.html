@@ -316,6 +316,12 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
+    .encouragement::before,
+    .encouragement::after {
+      content: none;
+      display: none;
+    }
+
     /* =========================
        7. 분 입력칸 옆 응원 얼굴표정
        새로고침할 때 표정도 함께 바뀝니다.
@@ -349,6 +355,16 @@
       line-height: 1;
       white-space: nowrap;
       box-shadow: 3px 4px 0 rgba(87, 71, 39, 0.12);
+      transition:
+        opacity 180ms ease,
+        transform 180ms ease;
+    }
+
+    /* 일시정지 중에는 자리 크기는 유지하고 표정만 사라집니다. */
+    .mini-face.hidden {
+      opacity: 0;
+      transform: scale(0.82);
+      pointer-events: none;
     }
 
     .mini-face.change {
@@ -564,6 +580,24 @@
     let previousMessageIndex = -1;
     let previousFaceIndex = -1;
 
+    /* 표정을 보여주고 변경 애니메이션을 다시 실행합니다. */
+    function showCheerFace(faceText) {
+      cheerFace.classList.remove("hidden", "change");
+      cheerFace.textContent = faceText;
+
+      void cheerFace.offsetWidth;
+      cheerFace.classList.add("change");
+    }
+
+    /* 응원 문구를 지정해서 보여줍니다. */
+    function showEncouragementText(messageText) {
+      encouragementText.textContent = messageText;
+
+      encouragement.classList.remove("change");
+      void encouragement.offsetWidth;
+      encouragement.classList.add("change");
+    }
+
     /* 같은 문구가 연속으로 나오지 않도록 랜덤 선택 */
     function showRandomEncouragement() {
       let nextIndex;
@@ -592,11 +626,7 @@
       );
 
       previousFaceIndex = nextFaceIndex;
-      cheerFace.textContent = cheerFaces[nextFaceIndex];
-
-      cheerFace.classList.remove("change");
-      void cheerFace.offsetWidth;
-      cheerFace.classList.add("change");
+      showCheerFace(cheerFaces[nextFaceIndex]);
     }
 
     /* =========================
@@ -669,6 +699,7 @@
 
       widget.classList.remove("finished");
       minuteSetting.classList.add("running");
+      cheerFace.classList.remove("hidden");
 
       statusMessage.textContent = "집중 중이에요.";
       statusMessage.classList.remove("complete");
@@ -693,7 +724,8 @@
       minuteSetting.classList.remove("running");
       statusMessage.textContent = "잠시 멈췄어요.";
 
-      showRandomEncouragement();
+      showEncouragementText("잠깐 쉬어도 괜찮아. 준비되면 다시 돌아오자.");
+      cheerFace.classList.add("hidden");
       updateButtons();
     }
 
@@ -707,7 +739,8 @@
       minuteSetting.classList.add("running");
       statusMessage.textContent = "다시 집중 중이에요.";
 
-      showRandomEncouragement();
+      showEncouragementText("다시 돌아왔네! 잘했어. 남은 시간도 같이 가자.");
+      showCheerFace("*^ㅁ^*");
       updateButtons();
       runCountdown();
     }
@@ -729,10 +762,8 @@
       statusMessage.textContent = "완료!";
       statusMessage.classList.add("complete");
 
-      encouragementText.textContent = "끝까지 왔네! 정말 잘했어.";
-      encouragement.classList.remove("change");
-      void encouragement.offsetWidth;
-      encouragement.classList.add("change");
+      showEncouragementText("완료! 잘했어!");
+      showCheerFace("✦^ㅁ^✦");
 
       minuteInput.disabled = false;
       updateButtons();
@@ -748,6 +779,7 @@
 
       widget.classList.remove("finished");
       minuteSetting.classList.remove("running");
+      cheerFace.classList.remove("hidden");
 
       minuteInput.disabled = false;
 
@@ -785,11 +817,3 @@
   </script>
 </body>
 </html>
-
-<style>
-  .encouragement::before,
-  .encouragement::after {
-    content: none !important;
-    display: none !important;
-  }
-</style>
