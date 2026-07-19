@@ -2,8 +2,12 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+
+  <!-- 모바일 화면에서도 잘리지 않도록 설정 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>포스트잇 응원 타이머</title>
+
   <style>
     /* =========================
        1. 기본 색상과 공통 설정
@@ -39,7 +43,8 @@
     }
 
     /* =========================
-       2. 전체 위젯 (3:4 비율)
+       2. 전체 위젯
+       3:4 증명사진 느낌의 세로 비율
        ========================= */
     .widget {
       position: relative;
@@ -78,6 +83,7 @@
       border-bottom: 1px dashed rgba(116, 93, 38, 0.18);
     }
 
+    /* 완료 상태에서도 노란 포스트잇 색상은 유지하고 살짝 튀는 애니메이션만 적용 */
     .widget.finished {
       animation: finish-pop 520ms ease;
     }
@@ -173,14 +179,14 @@
     }
 
     /* =========================
-       4. 시간 입력 구역
+       4. 시간 입력
        ========================= */
     .input-row {
       display: grid;
       grid-template-columns: repeat(2, auto);
       gap: 10px;
       width: max-content;
-      margin: 0;
+      margin: 18px auto 14px;
       font-weight: 800;
       text-align: center;
     }
@@ -214,6 +220,7 @@
       outline: none;
     }
 
+    /* 숫자 입력창의 위아래 화살표 공간 때문에 숫자가 치우치지 않도록 처리 */
     .input-row input[type="number"] {
       appearance: textfield;
       -moz-appearance: textfield;
@@ -232,7 +239,7 @@
     }
 
     /* =========================
-       5. 조작 버튼
+       5. 버튼
        ========================= */
     .buttons {
       display: grid;
@@ -253,16 +260,37 @@
       font-weight: 900;
       cursor: pointer;
       box-shadow: 0 4px 0 rgba(87, 71, 39, 0.18);
-      transition: transform 80ms ease, box-shadow 80ms ease, background-color 120ms ease;
+      transition:
+        transform 80ms ease,
+        box-shadow 80ms ease,
+        background-color 120ms ease;
     }
 
-    button:hover:not(:disabled) { background: #fff1b4; }
-    button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(87, 71, 39, 0.18); }
-    button:disabled { opacity: 0.42; cursor: not-allowed; }
+    button:hover:not(:disabled) {
+      background: #fff1b4;
+    }
 
-    #startButton { background: #ffd4df; }
-    #resumeButton { background: #d9f0d4; }
-    #resetButton { background: #e7ddff; }
+    button:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(87, 71, 39, 0.18);
+    }
+
+    button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    #startButton {
+      background: #ffd4df;
+    }
+
+    #resumeButton {
+      background: #d9f0d4;
+    }
+
+    #resetButton {
+      background: #e7ddff;
+    }
 
     /* =========================
        6. 응원 말풍선
@@ -289,6 +317,7 @@
       margin: 0;
     }
 
+    /* 응원 문구를 새로 뽑는 작은 버튼 */
     .encouragement-refresh {
       position: absolute;
       top: 50%;
@@ -305,17 +334,34 @@
       transform: translateY(-50%);
     }
 
-    .encouragement-refresh:hover:not(:disabled) { background: #ffc3d2; }
-    .encouragement-refresh:active:not(:disabled) { transform: translateY(calc(-50% + 2px)); box-shadow: 0 1px 0 rgba(87, 71, 39, 0.18); }
-    .encouragement.change { animation: bubble-pop 260ms ease; }
+    .encouragement-refresh:hover:not(:disabled) {
+      background: #ffc3d2;
+    }
+
+    .encouragement-refresh:active:not(:disabled) {
+      transform: translateY(calc(-50% + 2px));
+      box-shadow: 0 1px 0 rgba(87, 71, 39, 0.18);
+    }
+
+    /* 문구가 바뀔 때 가볍게 흔들림 */
+    .encouragement.change {
+      animation: bubble-pop 260ms ease;
+    }
 
     @keyframes bubble-pop {
       0%   { transform: scale(0.96); opacity: 0.55; }
       100% { transform: scale(1); opacity: 1; }
     }
 
+    .encouragement::before,
+    .encouragement::after {
+      content: none;
+      display: none;
+    }
+
     /* =========================
-       7. 응원 얼굴 표정 박스
+       7. 분 입력칸 옆 응원 얼굴표정
+       새로고침할 때 표정도 함께 바뀝니다.
        ========================= */
     .minute-setting {
       display: grid;
@@ -326,7 +372,9 @@
       margin: 18px auto 14px;
     }
 
-    .minute-setting .input-row { margin: 0; }
+    .minute-setting .input-row {
+      margin: 0;
+    }
 
     .mini-face {
       display: grid;
@@ -344,25 +392,51 @@
       line-height: 1;
       white-space: nowrap;
       box-shadow: 3px 4px 0 rgba(87, 71, 39, 0.12);
-      transition: opacity 180ms ease, transform 180ms ease;
+      transition:
+        opacity 180ms ease,
+        transform 180ms ease;
     }
 
-    .mini-face.hidden { opacity: 0; transform: scale(0.82); pointer-events: none; }
-    .mini-face.change { animation: face-pop 260ms ease; }
-    .running .mini-face { animation: face-bounce 760ms ease-in-out infinite alternate; }
+    /* 일시정지 중에는 자리 크기는 유지하고 표정만 사라집니다. */
+    .mini-face.hidden {
+      opacity: 0;
+      transform: scale(0.82);
+      pointer-events: none;
+    }
+
+    .mini-face.change {
+      animation: face-pop 260ms ease;
+    }
+
+    .running .mini-face {
+      animation: face-bounce 760ms ease-in-out infinite alternate;
+    }
 
     @keyframes face-pop {
-      0% { transform: scale(0.86); opacity: 0.4; }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0.86);
+        opacity: 0.4;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     @keyframes face-bounce {
-      from { transform: translateY(0); }
-      to { transform: translateY(-3px); }
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-3px);
+      }
     }
 
+
     /* =========================
-       8. 성장 기록 모달 팝업
+       8. 성장 기록 버튼과 모달
        ========================= */
     .record-modal {
       position: fixed;
@@ -374,7 +448,9 @@
       z-index: 20;
     }
 
-    .record-modal.open { display: grid; }
+    .record-modal.open {
+      display: grid;
+    }
 
     .record-card {
       width: min(92vw, 360px);
@@ -393,8 +469,16 @@
       margin-bottom: 14px;
     }
 
-    .record-card h2 { margin: 0; font-size: 1.05rem; }
-    .record-close { min-height: 34px; padding: 4px 9px; font-size: 0.78rem; }
+    .record-card h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .record-close {
+      min-height: 34px;
+      padding: 4px 9px;
+      font-size: 0.78rem;
+    }
 
     .progress-panel {
       padding: 12px;
@@ -412,42 +496,77 @@
       margin-bottom: 10px;
     }
 
-    .achievement-list { margin: 0; padding-left: 18px; color: var(--muted); }
-    .achievement-list li.unlocked { color: var(--ink); }
-
-    .exp-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(62, 55, 44, 0.12);
-      border-radius: 3px;
-      margin-top: 4px;
-      overflow: hidden;
+    .achievement-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
     }
-    .exp-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-      transition: width 300ms ease;
+
+    .achievement-list li.unlocked {
+      color: var(--ink);
     }
 
     /* =========================
-       9. 모바일 레이아웃 설정
+       9. 모바일 대응
        ========================= */
     @media (max-width: 420px) {
-      body { padding: 10px; }
+      body {
+        padding: 10px;
+      }
+
       .widget {
         width: min(96vw, 390px);
         min-height: 500px;
         max-height: none;
         padding: 27px 18px 20px;
       }
-      .timer-panel { min-height: 124px; }
-      .buttons { gap: 7px; }
-      button { min-height: 42px; font-size: 0.78rem; }
-      .encouragement { min-height: 68px; padding: 10px 48px 10px 10px; }
-      .encouragement-refresh { right: 8px; width: 32px; min-height: 32px; font-size: 1rem; }
-      .minute-setting { gap: 10px; }
-      .mini-face { min-width: 80px; min-height: 52px; padding: 5px 8px; font-size: clamp(1.1rem, 5.5vw, 1.45rem); }
+
+      .timer-panel {
+        min-height: 124px;
+      }
+
+      .buttons {
+        gap: 7px;
+      }
+
+      button {
+        min-height: 42px;
+        font-size: 0.78rem;
+      }
+
+      .encouragement {
+        min-height: 68px;
+        padding: 10px 48px 10px 10px;
+      }
+
+      .encouragement-refresh {
+        right: 8px;
+        width: 32px;
+        min-height: 32px;
+        font-size: 1rem;
+      }
+
+      .minute-setting {
+        gap: 10px;
+      }
+
+      .mini-face {
+        min-width: 80px;
+        min-height: 52px;
+        padding: 5px 8px;
+        font-size: clamp(1.1rem, 5.5vw, 1.45rem);
+      }
+    }
+
+    /* 움직임 최소화 설정 사용자를 위한 접근성 처리 */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
     }
   </style>
 </head>
@@ -470,21 +589,37 @@
       </button>
     </div>
 
+    <!-- 남은 시간을 크게 보여주는 영역 -->
     <section class="timer-panel" aria-live="polite">
       <p id="timeDisplay" class="time">10:00</p>
       <p id="statusMessage" class="status">집중할 시간을 입력해 주세요.</p>
     </section>
 
+    <!-- 분/초 입력과 응원 표정을 한 줄에 배치 -->
     <div id="minuteSetting" class="minute-setting">
       <div class="input-row">
         <div class="time-field">
           <label for="minuteInput">분</label>
-          <input id="minuteInput" type="number" min="0" max="180" value="10" inputmode="numeric" />
+          <input
+            id="minuteInput"
+            type="number"
+            min="0"
+            max="180"
+            value="10"
+            inputmode="numeric"
+          />
         </div>
 
         <div class="time-field">
           <label for="secondInput">초</label>
-          <input id="secondInput" type="number" min="0" max="59" value="0" inputmode="numeric" />
+          <input
+            id="secondInput"
+            type="number"
+            min="0"
+            max="59"
+            value="0"
+            inputmode="numeric"
+          />
         </div>
       </div>
 
@@ -493,6 +628,7 @@
       </div>
     </div>
 
+    <!-- 시작, 일시정지, 재개, 초기화 버튼 -->
     <div class="buttons">
       <button id="startButton" type="button">시작</button>
       <button id="pauseButton" type="button" disabled>일시정지</button>
@@ -500,21 +636,33 @@
       <button id="resetButton" type="button">초기화</button>
     </div>
 
+    <!-- 랜덤 응원 문구가 표시되는 말풍선 -->
     <section id="encouragement" class="encouragement">
       <p id="encouragementText" class="encouragement-text">
         오늘 할 일, 딱 한 조각만 시작해 보자.
       </p>
-      <button id="refreshEncouragement" class="encouragement-refresh" type="button" aria-label="다른 응원 문구 보기" title="다른 응원 문구 보기">
+
+      <button
+        id="refreshEncouragement"
+        class="encouragement-refresh"
+        type="button"
+        aria-label="다른 응원 문구 보기"
+        title="다른 응원 문구 보기"
+      >
         ↻
       </button>
     </section>
+
+
   </main>
 
   <div id="recordModal" class="record-modal" aria-hidden="true">
     <section class="record-card" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
       <div class="record-card-header">
         <h2 id="recordTitle">나의 성장 기록</h2>
-        <button id="recordCloseButton" class="record-close" type="button">닫기</button>
+        <button id="recordCloseButton" class="record-close" type="button">
+          닫기
+        </button>
       </div>
 
       <section class="progress-panel" aria-live="polite">
@@ -533,6 +681,9 @@
   </div>
 
   <script>
+    /* =========================
+       1. 화면 요소 가져오기
+       ========================= */
     const widget = document.getElementById("widget");
     const timeDisplay = document.getElementById("timeDisplay");
     const statusMessage = document.getElementById("statusMessage");
@@ -549,7 +700,8 @@
     const recordCloseButton = document.getElementById("recordCloseButton");
     const encouragement = document.getElementById("encouragement");
     const encouragementText = document.getElementById("encouragementText");
-    const refreshEncouragement = document.getElementById("refreshEncouragement");
+    const refreshEncouragement =
+      document.getElementById("refreshEncouragement");
     const minuteSetting = document.getElementById("minuteSetting");
     const cheerFace = document.getElementById("cheerFace");
 
@@ -558,6 +710,9 @@
     const resumeButton = document.getElementById("resumeButton");
     const resetButton = document.getElementById("resetButton");
 
+    /* =========================
+       2. 랜덤 응원 문구
+       ========================= */
     const encouragementMessages = [
       "오늘 할 일, 딱 한 조각만 시작해 보자.",
       "계단은 차근차근 올라가는 거야.",
@@ -580,46 +735,73 @@
     ];
 
     const cheerFaces = [
-      "*^ㅁ^*", "•ᴗ•", "٩(ˊᗜˋ*)و", "(๑•̀ㅂ•́)و✧", "ᕦ(ò_óˇ)ᕤ",
-      "(*´▽`*)", "(ง •̀_•́)ง", "✦‿✦", "(｡•̀ᴗ-)✧", "ヽ(•‿•)노"
+      "*^ㅁ^*",
+      "•ᴗ•",
+      "٩(ˊᗜˋ*)و",
+      "(๑•̀ㅂ•́)و✧",
+      "ᕦ(ò_óˇ)ᕤ",
+      "(*´▽`*)",
+      "(ง •̀_•́)ง",
+      "✦‿✦",
+      "(｡•̀ᴗ-)✧",
+      "ヽ(•‿•)ノ"
     ];
 
     let previousMessageIndex = -1;
     let previousFaceIndex = -1;
 
+    /* 표정을 보여주고 변경 애니메이션을 다시 실행합니다. */
     function showCheerFace(faceText) {
       cheerFace.classList.remove("hidden", "change");
       cheerFace.textContent = faceText;
+
       void cheerFace.offsetWidth;
       cheerFace.classList.add("change");
     }
 
+    /* 응원 문구를 지정해서 보여줍니다. */
     function showEncouragementText(messageText) {
       encouragementText.textContent = messageText;
+
       encouragement.classList.remove("change");
       void encouragement.offsetWidth;
       encouragement.classList.add("change");
     }
 
+    /* 같은 문구가 연속으로 나오지 않도록 랜덤 선택 */
     function showRandomEncouragement() {
       let nextIndex;
+
       do {
         nextIndex = Math.floor(Math.random() * encouragementMessages.length);
-      } while (encouragementMessages.length > 1 && nextIndex === previousMessageIndex);
+      } while (
+        encouragementMessages.length > 1 &&
+        nextIndex === previousMessageIndex
+      );
+
       previousMessageIndex = nextIndex;
       encouragementText.textContent = encouragementMessages[nextIndex];
+
       encouragement.classList.remove("change");
       void encouragement.offsetWidth;
       encouragement.classList.add("change");
 
       let nextFaceIndex;
+
       do {
         nextFaceIndex = Math.floor(Math.random() * cheerFaces.length);
-      } while (cheerFaces.length > 1 && nextFaceIndex === previousFaceIndex);
+      } while (
+        cheerFaces.length > 1 &&
+        nextFaceIndex === previousFaceIndex
+      );
+
       previousFaceIndex = nextFaceIndex;
       showCheerFace(cheerFaces[nextFaceIndex]);
     }
 
+    /* =========================
+       3. 타이머 상태값
+       ========================= */
     let remainingSeconds = 10 * 60;
     let timerId = null;
     let isRunning = false;
@@ -631,6 +813,7 @@
       '{"exp":0,"completed":0,"totalSeconds":0}'
     );
 
+    /* 입력값을 분/초 단위로 정리합니다. 최소 1초, 최대 180분 59초 */
     function getInputSeconds() {
       let minutes = Number(minuteInput.value);
       let seconds = Number(secondInput.value);
@@ -645,34 +828,43 @@
       seconds = Math.max(0, Math.min(59, seconds));
 
       let totalSeconds = minutes * 60 + seconds;
+
       if (totalSeconds < 1) {
         totalSeconds = 1;
         minutes = 0;
         seconds = 1;
       }
+
       minuteInput.value = minutes;
       secondInput.value = seconds;
+
       return totalSeconds;
     }
 
+    /* 남은 초를 MM:SS 형식으로 표시 */
     function updateTimeDisplay() {
       const minutes = Math.floor(remainingSeconds / 60);
       const seconds = remainingSeconds % 60;
-      timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+      timeDisplay.textContent =
+        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
+    /* 입력된 분을 기준으로 타이머를 다시 설정 */
     function setTimerFromInput() {
       remainingSeconds = getInputSeconds();
       currentSessionSeconds = remainingSeconds;
       updateTimeDisplay();
     }
 
+    /* 버튼 상태를 현재 타이머 상태에 맞게 변경 */
     function updateButtons() {
       startButton.disabled = isRunning || isPaused;
       pauseButton.disabled = !isRunning;
       resumeButton.disabled = !isPaused;
     }
 
+    /* 성장 정보와 업적 표시 */
     function updateProgressUI() {
       const level = Math.floor(progressState.exp / 100) + 1;
       const expInLevel = progressState.exp % 100;
@@ -694,7 +886,9 @@
       achievementItems.forEach((item) => {
         const key = item.dataset.achievement;
         item.classList.toggle("unlocked", Boolean(unlocked[key]));
-        item.textContent = `${unlocked[key] ? "✓ " : "□ "}` + item.textContent.replace(/^[✓□]\s*/, "");
+        item.textContent =
+          `${unlocked[key] ? "✓ " : "□ "}` +
+          item.textContent.replace(/^[✓□]\s*/, "");
       });
     }
 
@@ -709,76 +903,107 @@
     }
 
     function saveProgress() {
-      localStorage.setItem("postitTimerProgress", JSON.stringify(progressState));
+      localStorage.setItem(
+        "postitTimerProgress",
+        JSON.stringify(progressState)
+      );
       updateProgressUI();
     }
 
+    /* =========================
+       4. 카운트다운 실행
+       ========================= */
     function runCountdown() {
       timerId = setInterval(() => {
         remainingSeconds -= 1;
         updateTimeDisplay();
+
         if (remainingSeconds <= 0) {
           finishTimer();
         }
       }, 1000);
     }
 
+    /* 시작 버튼 */
     function startTimer() {
       clearInterval(timerId);
+
       setTimerFromInput();
+
       isRunning = true;
       isPaused = false;
+
       widget.classList.remove("finished");
       minuteSetting.classList.add("running");
       cheerFace.classList.remove("hidden");
+
       statusMessage.textContent = "집중 중이에요.";
       statusMessage.classList.remove("complete");
+
       minuteInput.disabled = true;
       secondInput.disabled = true;
+
       showRandomEncouragement();
       updateButtons();
       runCountdown();
     }
 
+    /* 일시정지 버튼 */
     function pauseTimer() {
       if (!isRunning) return;
+
       clearInterval(timerId);
       timerId = null;
+
       isRunning = false;
       isPaused = true;
+
       minuteSetting.classList.remove("running");
       statusMessage.textContent = "잠시 멈췄어요.";
+
       showEncouragementText("잠깐 쉬어도 괜찮아. 준비되면 다시 돌아오자.");
       cheerFace.classList.add("hidden");
       updateButtons();
     }
 
+    /* 재개 버튼 */
     function resumeTimer() {
       if (!isPaused || remainingSeconds <= 0) return;
+
       isRunning = true;
       isPaused = false;
+
       minuteSetting.classList.add("running");
       statusMessage.textContent = "다시 집중 중이에요.";
+
       showEncouragementText("다시 돌아왔네! 잘했어. 남은 시간도 같이 가자.");
       showCheerFace("*^ㅁ^*");
       updateButtons();
       runCountdown();
     }
 
+    /* 완료 처리 */
     function finishTimer() {
       clearInterval(timerId);
       timerId = null;
+
       remainingSeconds = 0;
       isRunning = false;
       isPaused = false;
+
       updateTimeDisplay();
+
       widget.classList.add("finished");
       minuteSetting.classList.remove("running");
+
       statusMessage.textContent = "완료!";
       statusMessage.classList.add("complete");
+
       showEncouragementText("완료! 잘했어!");
       showCheerFace("✦^ㅁ^✦");
 
+      /* 완료한 세션 길이에 따라 EXP를 지급합니다.
+         기본 10 EXP + 집중 1분당 1 EXP */
       const earnedExp = 10 + Math.max(1, Math.floor(currentSessionSeconds / 60));
       progressState.exp += earnedExp;
       progressState.completed += 1;
@@ -790,46 +1015,71 @@
       updateButtons();
     }
 
+    /* 초기화 버튼 */
     function resetTimer() {
       clearInterval(timerId);
       timerId = null;
+
       isRunning = false;
       isPaused = false;
+
       widget.classList.remove("finished");
       minuteSetting.classList.remove("running");
       cheerFace.classList.remove("hidden");
+
       minuteInput.disabled = false;
       secondInput.disabled = false;
+
       setTimerFromInput();
+
       statusMessage.textContent = "집중할 시간을 입력해 주세요.";
       statusMessage.classList.remove("complete");
+
       showRandomEncouragement();
       updateButtons();
     }
 
+    /* =========================
+       5. 버튼 이벤트 연결
+       ========================= */
     startButton.addEventListener("click", startTimer);
     pauseButton.addEventListener("click", pauseTimer);
     resumeButton.addEventListener("click", resumeTimer);
     resetButton.addEventListener("click", resetTimer);
-    refreshEncouragement.addEventListener("click", showRandomEncouragement);
+    refreshEncouragement.addEventListener(
+      "click",
+      showRandomEncouragement
+    );
+
     recordButton.addEventListener("click", openRecordModal);
     recordCloseButton.addEventListener("click", closeRecordModal);
 
     recordModal.addEventListener("click", (event) => {
-      if (event.target === recordModal) { closeRecordModal(); }
+      if (event.target === recordModal) {
+        closeRecordModal();
+      }
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") { closeRecordModal(); }
+      if (event.key === "Escape") {
+        closeRecordModal();
+      }
     });
 
+    /* 입력값이 바뀌면 실행 중이 아닐 때 화면 시간도 바로 갱신 */
     minuteInput.addEventListener("change", () => {
-      if (!isRunning && !isPaused) { setTimerFromInput(); }
-    });
-    secondInput.addEventListener("change", () => {
-      if (!isRunning && !isPaused) { setTimerFromInput(); }
+      if (!isRunning && !isPaused) {
+        setTimerFromInput();
+      }
     });
 
+    secondInput.addEventListener("change", () => {
+      if (!isRunning && !isPaused) {
+        setTimerFromInput();
+      }
+    });
+
+    /* 최초 화면 설정 */
     setTimerFromInput();
     updateButtons();
     updateProgressUI();
